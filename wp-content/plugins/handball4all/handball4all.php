@@ -7,32 +7,30 @@
     * Author URI: https://github.com/chrisjamhol
     * Api Page: http://www.handball4all.de/index.php?tacoma=webpart.pages.Handball4allPage&navid=1263&coid=1263&cid=4&h4all=gfoi2i5k5nl7icfg5v4u8druo7 -- JSON Mannschaftsspielpläne: Übersicht der IDs und Links aktuelle Saison
     */
-
-    // Example 1 : WP Shortcode to display form on any page or post.
     /**
      * @param $attributes
      * @return string|void
      */
     function handball4all_table($attributes) {
-        $html = '';
-
         $parameters = shortcode_atts(getDefaultOptions(), $attributes);
         //todo validate parameters
-        $teamData = getTeamData($parameters);
-        $html = parseTeamData($teamData);
-
-        return $html;
+        $teamData = getTeamTable($parameters);
+        parseTeamData($teamData);
     }
 
     function handball4all_games($attributes) {
-        $html = '';
-
         $parameters = shortcode_atts(getDefaultOptions(), $attributes);
         //todo validate parameters
-        $teamData = getTeamData($parameters);
-        $html = parseTeamGames($teamData);
+        $teamData = getTeamGames($parameters);
+        parseTeamGames($teamData);
+    }
 
-        return $html;
+    function handball4all_club($attributes) {
+
+         $parameters = shortcode_atts(getDefaultOptions(), $attributes);
+        //todo validate parameters
+        $teamData = getClubGames($parameters);
+        parseClubGames($teamData);
     }
 
     /**
@@ -50,10 +48,23 @@
     }
 
     /**
+     * @param $teamData
+     */
+    function parseClubGames($teamData) {
+        include_once('partials/clubgames.php');
+    }
+
+    /**
      * @return array
      */
     function getDefaultOptions() {
-        $defaultOptions = array('baseurl' => 'http://www.handball4all.de/m/php/spo-proxy_public.php?cmd=data&', 'manschaftsid' => 0, 'quote' => 'quote', 'attribution' => 'Author',);
+        $defaultOptions = array(
+            'baseurl' => 'http://www.handball4all.de/m/php/spo-proxy_public.php?cmd=data&',
+            'manschaftsid' => 0,
+            'quote' => 'quote',
+            'attribution' => 'Author',
+            'vereinsid' => 596
+        );
 
         return $defaultOptions;
     }
@@ -62,11 +73,33 @@
      * @param $parameters
      * @return array|mixed|object
      */
-    function getTeamData($parameters) {
-        $cachefilename = plugin_dir_path(__FILE__) . 'cache/teamdata-' . $parameters['manschaftsid'] . '.json';
+    function getTeamGames($parameters) {
+        $cachefilename = plugin_dir_path(__FILE__) . 'cache/teamgames-' . $parameters['manschaftsid'] . '.json';
         $cacheIsOutdated = getIsCacheOutdated($cachefilename);
         if ($cacheIsOutdated)
-            createTeamDataCache($cachefilename, $parameters);
+            createTeamGamesCache($cachefilename, $parameters);
+
+        $teamData = getCacheFromFile($cachefilename);
+
+        return $teamData;
+    }
+
+    function getTeamTable($parameters) {
+        $cachefilename = plugin_dir_path(__FILE__) . 'cache/teamtable-' . $parameters['manschaftsid'] . '.json';
+        $cacheIsOutdated = getIsCacheOutdated($cachefilename);
+        if ($cacheIsOutdated)
+            createTeamTableCache($cachefilename, $parameters);
+
+        $teamData = getCacheFromFile($cachefilename);
+
+        return $teamData;
+    }
+
+    function getClubGames($parameters) {
+        $cachefilename = plugin_dir_path(__FILE__) . 'cache/clubgames-' . $parameters['vereinsid'] . '.json';
+        $cacheIsOutdated = getIsCacheOutdated($cachefilename);
+        if ($cacheIsOutdated)
+            createClubGamesCache($cachefilename, $parameters);
 
         $teamData = getCacheFromFile($cachefilename);
 
@@ -74,12 +107,10 @@
     }
 
     /**
-     * @param $parameters
+     * @param string $url
      * @return array|mixed|object
      */
-    function getTeamDataJson($parameters) {
-        $url = $parameters['baseurl'] . '&lvTypeNext=team&lvIDNext=' . $parameters['manschaftsid'];
-
+    function getDataAsJson($url) {
         $response = file_get_contents($url);
         $teamData = json_decode($response, true);
 
@@ -105,9 +136,23 @@
      * @param $cachefilename
      * @param $parameters
      */
-    function createTeamDataCache($cachefilename, $parameters) {
-        $teamDataJson = getTeamDataJson($parameters);
-        writeCacheFile($cachefilename, $teamDataJson);
+    function createTeamGamesCache($cachefilename, $parameters) {
+        $url = $parameters['baseurl'] . '&lvTypeNext=team&lvIDNext=' . $parameters['manschaftsid'];
+        $teamGamesJson = getDataAsJson($url);
+        writeCacheFile($cachefilename, $teamGamesJson);
+    }
+
+    function createClubGamesCache($cachefilename, $parameters) {
+        $url = $parameters['baseurl'] . '&lvTypeNext=club&lvIDNext=' . $parameters['vereinsid'];
+        echo $url;
+        $teamTableJson = getDataAsJson($url);
+        writeCacheFile($cachefilename, $teamTableJson);
+    }
+
+    function createTeamTableCache($cachefilename, $parameters) {
+        $url = $parameters['baseurl'] . '&lvTypeNext=teamList&lvIDNext=' . $parameters['manschaftsid'];
+        $teamTableJson = getDataAsJson($url);
+        writeCacheFile($cachefilename, $teamTableJson);
     }
 
     /**
@@ -159,6 +204,7 @@
 
     add_shortcode('handball4all-table', 'handball4all_table');
     add_shortcode('handball4all-spiele', 'handball4all_games');
+    add_shortcode('handball4all-aktuelle-spiele', 'handball4all_club');
     add_action('wp_enqueue_scripts', 'addResoureces');
 
 ?>

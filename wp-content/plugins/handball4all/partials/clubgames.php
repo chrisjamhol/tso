@@ -5,6 +5,7 @@
         $data = array_reverse($data);
 
         foreach($data as $index => $dataEntry):?>
+            <?php continue; ?>
             <div class="row <?php echo $index % 2 > 0 ? 'odd' : 'even'?>">
 
                 <div class="col-xs-12 teamtable-wrapper-main">
