@@ -13,8 +13,7 @@
      * @param $attributes
      * @return string|void
      */
-    function handball4all_table($attributes)
-    {
+    function handball4all_table($attributes) {
         $html = '';
 
         $parameters = shortcode_atts(getDefaultOptions(), $attributes);
@@ -25,17 +24,36 @@
         return $html;
     }
 
+    function handball4all_games($attributes) {
+        $html = '';
+
+        $parameters = shortcode_atts(getDefaultOptions(), $attributes);
+        //todo validate parameters
+        $teamData = getTeamData($parameters);
+        $html = parseTeamGames($teamData);
+
+        return $html;
+    }
+
+    /**
+     * @param $teamData
+     */
+    function parseTeamGames($teamData) {
+        include_once('partials/teamgames.php');
+    }
+
+    /**
+     * @param $teamData
+     */
+    function parseTeamData($teamData) {
+        include_once('partials/teamtable.php');
+    }
+
     /**
      * @return array
      */
-    function getDefaultOptions()
-    {
-        $defaultOptions = array(
-            'baseurl' => 'http://www.handball4all.de/m/php/spo-proxy_public.php?cmd=data&',
-            'manschaftsid' => 0,
-            'quote' => 'quote',
-            'attribution' => 'Author',
-        );
+    function getDefaultOptions() {
+        $defaultOptions = array('baseurl' => 'http://www.handball4all.de/m/php/spo-proxy_public.php?cmd=data&', 'manschaftsid' => 0, 'quote' => 'quote', 'attribution' => 'Author',);
 
         return $defaultOptions;
     }
@@ -44,8 +62,7 @@
      * @param $parameters
      * @return array|mixed|object
      */
-    function getTeamData($parameters)
-    {
+    function getTeamData($parameters) {
         $cachefilename = plugin_dir_path(__FILE__) . 'cache/teamdata-' . $parameters['manschaftsid'] . '.json';
         $cacheIsOutdated = getIsCacheOutdated($cachefilename);
         if ($cacheIsOutdated)
@@ -60,8 +77,7 @@
      * @param $parameters
      * @return array|mixed|object
      */
-    function getTeamDataJson($parameters)
-    {
+    function getTeamDataJson($parameters) {
         $url = $parameters['baseurl'] . '&lvTypeNext=team&lvIDNext=' . $parameters['manschaftsid'];
 
         $response = file_get_contents($url);
@@ -71,19 +87,10 @@
     }
 
     /**
-     * @param $teamData
-     */
-    function parseTeamData($teamData)
-    {
-        include_once('partials/teamtable.php');
-    }
-
-    /**
      * @param $cachefilename
      * @return array|mixed|object
      */
-    function getCacheFromFile($cachefilename)
-    {
+    function getCacheFromFile($cachefilename) {
         $cacheData = array();
 
         if (is_file($cachefilename)) {
@@ -98,8 +105,7 @@
      * @param $cachefilename
      * @param $parameters
      */
-    function createTeamDataCache($cachefilename, $parameters)
-    {
+    function createTeamDataCache($cachefilename, $parameters) {
         $teamDataJson = getTeamDataJson($parameters);
         writeCacheFile($cachefilename, $teamDataJson);
     }
@@ -108,8 +114,7 @@
      * @param $cachefilename
      * @param $jsonData
      */
-    function writeCacheFile($cachefilename, $jsonData)
-    {
+    function writeCacheFile($cachefilename, $jsonData) {
         if (is_writable($cachefilename)) {
             $fp = fopen($cachefilename, 'w');
             fwrite($fp, json_encode($jsonData));
@@ -123,8 +128,7 @@
      * @param $cachefilename
      * @return bool
      */
-    function getIsCacheOutdated($cachefilename)
-    {
+    function getIsCacheOutdated($cachefilename) {
         $cacheIsOutdated = false;
 
         if (is_file($cachefilename)) {
@@ -145,8 +149,7 @@
     /**
      *
      */
-    function addResoureces()
-    {
+    function addResoureces() {
         wp_register_script('tso_script', plugins_url('javascript/tso.js', __FILE__), array('jquery'), '1.0', true);
         wp_enqueue_script('tso_script');
 
@@ -155,6 +158,7 @@
     }
 
     add_shortcode('handball4all-table', 'handball4all_table');
+    add_shortcode('handball4all-spiele', 'handball4all_games');
     add_action('wp_enqueue_scripts', 'addResoureces');
 
 ?>

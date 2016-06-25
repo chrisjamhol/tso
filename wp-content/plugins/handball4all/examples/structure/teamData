@@ -29,6 +29,27 @@ gGymnasiumStreet => HallenStraße
 Mehr:
 gComment => Notiz (Spielbericht?)
 
+//ALL
+gNo => spielnummer
+gClassID => spielklasseID
+gClassSname => spielklasse Bezeichnung
+gComment => Notiz (Spielbericht?)
+
+Anfahrt
+gGymnasiumNo => Hallennummer
+gGymnasiumName => Hallenname
+gGymnasiumPostal => Hallenplz
+gGymnasiumTown => HallenStadt
+gGymnasiumStreet => HallenStraße
+
+//Header
+gDate => Spieldatum
+gTime => Spieluhrzeit
+gHomeTeam => Heimverein
+gGuestTeam => Gastverein
+gHomeGoals => Ergebnis Heim
+gGuestGoals => Ergebnis Gast
+
 
 [lvTypeNext] => [lvIDNext] => 0
 [levelTypeLabel] => [gID] => 1926392
